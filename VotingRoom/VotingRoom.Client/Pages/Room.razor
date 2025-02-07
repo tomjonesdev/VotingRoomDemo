@@ -1,0 +1,164 @@
+﻿@page "/{RoomId:guid?}"
+@rendermode InteractiveWebAssembly
+@using Microsoft.AspNetCore.SignalR.Client
+@using VotingRoom.Common.Enums
+@using VotingRoom.Common.Models
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Voting Room</PageTitle>
+<h1>
+    @(RoomId == null
+        ? "Create room"
+        : (RoomId != null && voter.Id == 0)
+        ? "Join room"
+        : "Your room"
+        )
+</h1>
+
+@if (RoomId == null)
+{
+    <button @onclick="RedirectToNewRoom" class="btn btn-success">Create room</button>
+}
+else if (voter.Id == 0)
+{
+    <EditForm Model="voter" OnValidSubmit="JoinRoom">
+        <DataAnnotationsValidator />
+
+        <label>
+            Name
+            <InputText @bind-Value="voter.Name" />
+            <ValidationMessage For="() => voter.Name" />
+        </label>
+
+        <InputRadioGroup @bind-Value="voter.Type">
+            @foreach (var type in Enum.GetValues<VoterType>())
+            {
+                <div>
+                    <label>
+                        <InputRadio Value="type" />
+                        Join as a @type
+                    </label>
+                </div>
+            }
+        </InputRadioGroup>
+
+        <small>Participants can vote, spectators can't</small>
+        <br />
+        <button class="btn btn-success">Join</button>
+    </EditForm>
+}
+else
+{
+    <div class="room-description">
+        <div>
+            <h2>Story point voting</h2>
+            <p>Simple story point voting page, using the Fibonacci sequence as a way to ascertain a task's <strong>complexity</strong>.</p>
+
+            <button @onclick=@(() => JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri)) class="btn btn-primary">Copy room URL to clipboard</button>
+        </div>
+
+        <div>
+            <h3>Participants</h3>
+            <ul>
+                @foreach (var voter in voters)
+                {
+                    <li class="text-nowrap">@voter.Name (@voter.Type)</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="card-group">
+        @foreach (var item in voteItems)
+        {
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <p>Total votes: @item.Votes</p>
+                    <button class="btn btn-lg btn-success w-100" @onclick="() => CastVote(item.Id)" disabled="@(!IsConnected || remainingVotes == 0 || voter.Type == VoterType.Spectator)">@item.Name</button>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var voter in item.Voters)
+                    {
+                        <li class="list-group-item">@voter.Name</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? RoomId { get; set; }
+
+    Voter voter = new();
+    List<Voter> voters = [];
+    int remainingVotes = 1;
+
+    HubConnection? hubConnection;
+    List<VoteItem> voteItems =
+    [
+        new() { Id = 1, Name = "1" },
+    new() { Id = 2, Name = "2" },
+    new() { Id = 3, Name = "3" },
+    new() { Id = 4, Name = "5" },
+    new() { Id = 5, Name = "8" },
+    new() { Id = 6, Name = "13" },
+    new() { Id = 7, Name = "21" },
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/roomhub"))
+            .Build();
+
+        hubConnection.On<CastVoteResponse>("ReceiveVote", (vote) =>
+        {
+            var voteItem = voteItems.First(vi => vi.Id == vote.VoteItemId);
+            voteItem.Voters.Add(new() { Id = vote.VoterId, Name = vote.VoterName });
+
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<Voter>("JoinRoom", (newVoter) =>
+        {
+            voters.Add(newVoter);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    void RedirectToNewRoom()
+    {
+        Navigation.NavigateTo("/" + Guid.NewGuid());
+    }
+
+    async Task JoinRoom()
+    {
+        voter.Id = voters.Count + 1;
+        await hubConnection.SendAsync("JoinRoom", voter, RoomId);
+    }
+
+    async Task CastVote(int voteItemId)
+    {
+        if (hubConnection is not null && remainingVotes > 0)
+        {
+            await hubConnection.SendAsync("Vote", RoomId, voter, voteItemId);
+            remainingVotes--;
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
