@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
-namespace VotingRoom.Client
+namespace VotingRoomDemo.Client
 {
     internal class Program
     {

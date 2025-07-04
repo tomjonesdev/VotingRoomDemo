@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using VotingRoom.Common.Models;
+using VotingRoomDemo.Common.Models;
 
-namespace VotingRoom.Hubs;
+namespace VotingRoomDemo.Hubs;
 
 public class RoomHub : Hub
 {

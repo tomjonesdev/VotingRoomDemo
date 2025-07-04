@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.ResponseCompression;
-using VotingRoom.Components;
-using VotingRoom.Hubs;
+using VotingRoomDemo.Components;
+using VotingRoomDemo.Hubs;
 
-namespace VotingRoom
+namespace VotingRoomDemo
 {
     public class Program
     {

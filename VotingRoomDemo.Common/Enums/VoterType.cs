@@ -1,4 +1,4 @@
-﻿namespace VotingRoom.Common.Enums;
+﻿namespace VotingRoomDemo.Common.Enums;
 
 public enum VoterType
 {

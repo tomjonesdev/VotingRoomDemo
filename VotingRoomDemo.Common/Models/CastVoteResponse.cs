@@ -1,4 +1,4 @@
-﻿namespace VotingRoom.Common.Models;
+﻿namespace VotingRoomDemo.Common.Models;
 
 public class CastVoteResponse
 {

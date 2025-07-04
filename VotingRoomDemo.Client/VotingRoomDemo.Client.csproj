@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\VotingRoom.Common\VotingRoom.Common.csproj" />
+    <ProjectReference Include="..\VotingRoomDemo.Common\VotingRoomDemo.Common.csproj" />
   </ItemGroup>
 
 </Project>

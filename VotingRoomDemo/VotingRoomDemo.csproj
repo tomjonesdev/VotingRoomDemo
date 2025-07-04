@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VotingRoom.Client\VotingRoom.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VotingRoomDemo.Client\VotingRoomDemo.Client.csproj" />
+    <ProjectReference Include="..\VotingRoomDemo.Common\VotingRoomDemo.Common.csproj" />
   </ItemGroup>
 
 </Project>

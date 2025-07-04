@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VotingRoom.Common.Models;
+namespace VotingRoomDemo.Common.Models;
 
 public class Member
 {
